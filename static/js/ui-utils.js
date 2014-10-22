@@ -416,6 +416,7 @@ $(function() {
 	var notTouchScreen = (!isTouch());
 	if (notTouchScreen) {
 		$(".tip").tipsy();
+		$(".tip-circle").tipsy({html: true });
 	} else {
 		// Drawer info tips should be displayed on touchscreens.
 		$("#drawer").find(".tip").tipsy();

@@ -28,6 +28,7 @@
         SIXTY_MINS_IN_MS = 3600000,
         FOCUS_DATA_RANGE_MS = 12600000, // 3.5 hours of actual data
         FORMAT_TIME = '%I:%M%', //alternate format '%H:%M'
+		FORMAT_DATE_TIME = '%Y-%m-%d %H:%M', //alternate format '%H:%M'
         audio = document.getElementById('audio'),
         alarmInProgress = false,
         currentAlarmType = null,
@@ -37,7 +38,7 @@
         MINUTES_SINCE_LAST_UPDATE_WARN = 10,
         MINUTES_SINCE_LAST_UPDATE_URGENT = 20;
 
-    // Tick Values
+	// Tick Values
     var tickValues = [40, 60, 80, 120, 180, 300, 400];
     if (browserSettings.units == "mmol") {
         tickValues = [2.0, 3.0, 4.0, 6.0, 10.0, 15.0, 22.0];
@@ -79,8 +80,7 @@
     // create the y axis container
     context.append('g')
         .attr('class', 'y axis');
-
-
+		
     // Remove leading zeros from the time (eg. 08:40 = 8:40) & lowercase the am/pm
     function formatTime(time) {
 		var dateFormat = FORMAT_TIME;
@@ -94,6 +94,12 @@
         time = time.replace(/^0/, '').toLowerCase();
         return time;
     }
+	
+	function formatDateTime(dateTime) {
+		var dateTimeFormat = FORMAT_DATE_TIME;
+		dateTime = d3.time.format(dateTimeFormat)(dateTime);
+		return dateTime;
+	}
 
     // lixgbg: Convert mg/dL BG value to metric mmol
     function scaleBg(bg) {
@@ -335,15 +341,40 @@
             .duration(UPDATE_TRANS_MS)
             .attr('cx', function (d) { return xScale(d.date); })
             .attr('cy', function (d) { return yScale(d.sgv); })
-            .attr('fill', function (d) { return d.color; });
+            .attr('fill', function (d) { return d.color; })
+			;
 
+		var prevSgv = 0;
+		
         // if new circle then just display
         focusCircles.enter().append('circle')
             .attr('cx', function (d) { return xScale(d.date); })
             .attr('cy', function (d) { return yScale(d.sgv); })
             .attr('fill', function (d) { return d.color; })
             .attr('opacity', function (d) { return futureOpacity(d.date - latestSGV.x); })
-            .attr('r', 3);
+            .attr('r', 3)
+			.on("mouseover", function (d) {
+					//if(d.date <= (d3.time.hour.offset(d.date, -1)))
+					//{
+					  var source   = $("#circle-tip-template").html();
+					  var template = Handlebars.compile(source);
+					  var data = d;
+                      div.transition().duration(200).style("opacity", .9);
+                      div.html(template(data))
+                      .style("left", (d3.event.pageX + 5) + "px")
+                      .style("top", (d3.event.pageY - 38) + "px")
+					  .style("background-color", function () { 
+							return data.color; 
+					  });
+					  
+					//  }
+					  			  
+                  })
+			.on("mouseout", function (d) {
+              div.transition()
+                  .duration(500)
+                  .style("opacity", 0);
+          });
 
         focusCircles.exit()
             .remove();
@@ -806,8 +837,12 @@
                     $('.container .current').toggleClass('low', latestSGV.y < 70);
                 }
             }
+			var prevSgv = 0;
+			var deltaSgv = 0;
             data = d[0].map(function (obj) {
-                return { date: new Date(obj.x), y: obj.y, sgv: scaleBg(obj.y), direction: obj.direction, color: sgvToColor(obj.y)}
+				deltaSgv = scaleBg(obj.y - prevSgv);
+				prevSgv = obj.y;
+                return { date: new Date(obj.x), y: obj.y, sgv: scaleBg(obj.y), direction: obj.direction, color: sgvToColor(obj.y), delta: deltaSgv}
             });
             // TODO: This is a kludge to advance the time as data becomes stale by making old predictor clear (using color = 'none')
             // This shouldn't have to be sent and can be fixed by using xScale.domain([x0,x1]) function with
@@ -1105,4 +1140,11 @@
         }
         return predicted;
     }
+	
+			
+	$(document).ready(function(){
+		Handlebars.registerHelper('date-time', function(date) {
+			return formatDateTime(date);
+		});
+	})
 })();

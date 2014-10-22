@@ -188,5 +188,13 @@
         <script src="/js/ui-utils.js?v=0.4.0"></script>
         <script src="/js/client.js?v=0.4.0"></script>
         <script src="/js/experiments.js"></script>
+		<script src="/bower_components/handlebars/handlebars.min.js"></script>
     </body>
+	<script id="circle-tip-template" type="text/x-handlebars-template">
+		<div>
+			<strong>Time:</strong>{{date-time date}}<br/>
+			<strong>Value:</strong>{{sgv}}<br/>
+			<strong>Delta:</strong>{{delta}}<br/>
+		</div>
+	</script>
 </html>
