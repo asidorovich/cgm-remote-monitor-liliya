@@ -132,9 +132,7 @@ function storeInBrowser(json, storage) {
 	}
 	if (json.customTitle) storage.set("customTitle", json.customTitle);
     if (json.theme) storage.set("theme", json.theme);
-    event.preventDefault();
-
-	if (json.timeFormat) storage.set("timeFormat", json.timeFormat);
+ 	if (json.timeFormat) storage.set("timeFormat", json.timeFormat);
 	event.preventDefault();
 }
 function storeOnServer(json) {
